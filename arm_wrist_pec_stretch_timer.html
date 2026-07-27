@@ -270,6 +270,28 @@
     text-decoration: underline;
     cursor: pointer;
   }
+
+  #mainScreen {
+    display: none;
+    position: relative;
+  }
+  #cancelSessionBtn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 </style>
 </head>
 <body>
@@ -309,6 +331,7 @@
 
   <!-- MAIN TIMER SCREEN -->
   <div id="mainScreen">
+    <button id="cancelSessionBtn" aria-label="Cancel session">✕</button>
     <h1>Arm & Wrist Stretch Routine</h1>
     <div class="progress-label" id="progressLabel">Step 1 of 10</div>
 
@@ -406,6 +429,7 @@ const nextName = document.getElementById('nextName');
 const playPauseBtn = document.getElementById('playPauseBtn');
 const skipBtn = document.getElementById('skipBtn');
 const restartBtn = document.getElementById('restartBtn');
+const cancelSessionBtn = document.getElementById('cancelSessionBtn');
 const homeBtnDone = document.getElementById('homeBtnDone');
 const doneSubtext = document.getElementById('doneSubtext');
 
@@ -712,6 +736,13 @@ restartBtn.addEventListener('click', () => {
   playPauseBtn.textContent = 'Pause';
   renderStep();
   startInterval();
+});
+
+cancelSessionBtn.addEventListener('click', () => {
+  clearInterval(intervalId);
+  mainScreen.style.display = 'none';
+  homeScreen.classList.add('show');
+  renderHome();
 });
 
 homeBtnDone.addEventListener('click', () => {
