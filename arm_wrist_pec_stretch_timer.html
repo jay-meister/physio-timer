@@ -227,8 +227,6 @@
     padding: 14px 16px;
     margin-bottom: 26px;
     text-align: left;
-    max-height: 150px;
-    overflow-y: auto;
   }
   .history-label {
     font-size: 11px;
@@ -237,17 +235,66 @@
     color: var(--muted);
     margin-bottom: 10px;
   }
-  .history-row {
+  .history-weekdays {
     display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    gap: 4px;
+    margin-bottom: 4px;
   }
-  .history-row:last-child { border-bottom: none; }
-  .history-date { color: var(--text); font-weight: 600; }
-  .history-marks { color: var(--muted); }
-  .history-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 6px 0; }
+  .history-weekdays span {
+    flex: 1;
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .history-grid {
+    display: flex;
+    gap: 4px;
+  }
+  .history-cell {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: var(--muted);
+  }
+  .history-cell.level-1 {
+    background: rgba(62,198,165,0.35);
+    color: var(--text);
+    border-color: transparent;
+  }
+  .history-cell.level-2 {
+    background: var(--accent);
+    color: #08211c;
+    border-color: transparent;
+  }
+  .history-cell.today {
+    box-shadow: 0 0 0 2px var(--text) inset;
+  }
+  .history-legend {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  .legend-dot.level-0 { background: rgba(255,255,255,0.08); }
+  .legend-dot.level-1 { background: rgba(62,198,165,0.35); }
+  .legend-dot.level-2 { background: var(--accent); }
 
   #startBtn {
     width: 100%;
@@ -261,6 +308,18 @@
     cursor: pointer;
   }
   #startBtn:active { transform: scale(0.98); }
+  #editScheduleBtn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px 0;
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
   #resetHistoryBtn {
     margin-top: 14px;
     background: none;
@@ -292,6 +351,184 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* Schedule editing screen */
+  #scheduleScreen {
+    display: none;
+    width: 100%;
+  }
+  .schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .schedule-header h1 {
+    flex: 1;
+    margin: 0;
+    text-align: center;
+  }
+  #scheduleBackBtn, .schedule-spacer {
+    flex: none;
+    width: 34px;
+    height: 34px;
+  }
+  #scheduleBackBtn {
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .schedule-list {
+    max-height: 340px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+  }
+  .schedule-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 8px 10px;
+    transition: opacity 0.2s;
+  }
+  .schedule-row.inactive { opacity: 0.45; }
+  .schedule-reorder {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: none;
+  }
+  .reorder-btn {
+    flex: none;
+    width: 24px;
+    height: 20px;
+    padding: 0;
+    font-size: 9px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+  .reorder-btn:disabled { opacity: 0.25; cursor: default; }
+  .schedule-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .schedule-name {
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .schedule-duration {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+  .schedule-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: none;
+  }
+  .active-toggle {
+    flex: none;
+    width: auto;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 999px;
+    background: rgba(62,198,165,0.18);
+    color: var(--accent);
+  }
+  .active-toggle.off {
+    background: rgba(255,255,255,0.08);
+    color: var(--muted);
+  }
+  .delete-btn {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 8px;
+    background: rgba(247,79,79,0.14);
+    color: #f79b9b;
+    font-size: 13px;
+  }
+  .schedule-add {
+    background: rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: left;
+  }
+  .schedule-add-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .schedule-add input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    font-size: 14px;
+  }
+  .schedule-add-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .schedule-add-row select {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    font-size: 13px;
+  }
+  .schedule-add-row input[type="number"] {
+    flex: none;
+    width: 52px;
+    padding: 10px 6px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    font-size: 13px;
+    text-align: center;
+  }
+  .schedule-add-colon {
+    flex: none;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  #addTaskBtn {
+    width: 100%;
+    background: var(--accent);
+    color: #08211c;
+  }
 </style>
 </head>
 <body>
@@ -321,12 +558,46 @@
     </div>
 
     <div class="history-block">
-      <div class="history-label">History</div>
-      <div id="historyList"><div class="history-empty">No sessions logged yet</div></div>
+      <div class="history-label">Last 2 Weeks</div>
+      <div class="history-weekdays" id="historyWeekdays"></div>
+      <div class="history-grid" id="historyGrid"></div>
+      <div class="history-legend">
+        <span><span class="legend-dot level-0"></span>None</span>
+        <span><span class="legend-dot level-1"></span>1 session</span>
+        <span><span class="legend-dot level-2"></span>2 sessions</span>
+      </div>
     </div>
 
     <button id="startBtn">Start Session</button>
+    <button id="editScheduleBtn">Edit Schedule</button>
     <button id="resetHistoryBtn">Clear history</button>
+  </div>
+
+  <!-- SCHEDULE EDITING SCREEN -->
+  <div id="scheduleScreen">
+    <div class="schedule-header">
+      <button id="scheduleBackBtn" aria-label="Back to home">&#8592;</button>
+      <h1>Edit Schedule</h1>
+      <div class="schedule-spacer"></div>
+    </div>
+
+    <div class="schedule-list" id="scheduleList"></div>
+
+    <div class="schedule-add">
+      <div class="schedule-add-label">Add Exercise</div>
+      <input type="text" id="newTaskName" placeholder="Exercise name" maxlength="60">
+      <div class="schedule-add-row">
+        <select id="newTaskSide" aria-label="Side">
+          <option value="bi">Both Arms</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+        <input type="number" id="newTaskMin" min="0" max="30" value="1" aria-label="Minutes">
+        <span class="schedule-add-colon">:</span>
+        <input type="number" id="newTaskSec" min="0" max="59" step="5" value="0" aria-label="Seconds">
+      </div>
+      <button id="addTaskBtn">Add to Schedule</button>
+    </div>
   </div>
 
   <!-- MAIN TIMER SCREEN -->
@@ -378,28 +649,53 @@ const SIDE_BG = {
   bi: 'rgba(181,139,240,0.18)'
 };
 
-const routine = [
-  { name: 'Arm loosening & stretching', side: SIDE.BI, duration: 120 },
-  { name: 'Pectoral stretch against wall', side: SIDE.LEFT, duration: 80 },
-  { name: 'Pectoral stretch against wall', side: SIDE.RIGHT, duration: 80 },
-  { name: 'Wrist stretch, hands on floor', side: SIDE.BI, duration: 120 },
-  { name: 'Bicep & extensor stretch — wrist pointing down', side: SIDE.BI, duration: 60 },
-  { name: 'Bicep & extensor stretch — hands behind body', side: SIDE.BI, duration: 60 },
-  { name: 'Self-massage pectoral muscles', side: SIDE.LEFT, duration: 60 },
-  { name: 'Self-massage pectoral muscles', side: SIDE.RIGHT, duration: 60 },
-  { name: 'Self-massage forearm twists', side: SIDE.LEFT, duration: 60 },
-  { name: 'Self-massage forearm twists', side: SIDE.RIGHT, duration: 60 },
-  { name: 'Powerball', side: SIDE.BI, duration: 150 },
-  { name: 'Massage gun', side: SIDE.BI, duration: 120 },
-  { name: 'Foam rolling', side: SIDE.BI, duration: 120 },
-  { name: 'Thoracic spine twists', side: SIDE.LEFT, duration: 120 },
-  { name: 'Thoracic spine twists', side: SIDE.RIGHT, duration: 120 },
+const ROUTINE_STORAGE_KEY = 'armWristStretchRoutineV1';
+
+const DEFAULT_ROUTINE = [
+  { id: 's1', name: 'Arm loosening & stretching', side: SIDE.BI, duration: 120, active: true },
+  { id: 's2', name: 'Pectoral stretch against wall', side: SIDE.LEFT, duration: 80, active: true },
+  { id: 's3', name: 'Pectoral stretch against wall', side: SIDE.RIGHT, duration: 80, active: true },
+  { id: 's4', name: 'Wrist stretch, hands on floor', side: SIDE.BI, duration: 120, active: true },
+  { id: 's5', name: 'Bicep & extensor stretch — wrist pointing down', side: SIDE.BI, duration: 60, active: true },
+  { id: 's6', name: 'Bicep & extensor stretch — hands behind body', side: SIDE.BI, duration: 60, active: true },
+  { id: 's7', name: 'Self-massage pectoral muscles', side: SIDE.LEFT, duration: 60, active: true },
+  { id: 's8', name: 'Self-massage pectoral muscles', side: SIDE.RIGHT, duration: 60, active: true },
+  { id: 's9', name: 'Self-massage forearm twists', side: SIDE.LEFT, duration: 60, active: true },
+  { id: 's10', name: 'Self-massage forearm twists', side: SIDE.RIGHT, duration: 60, active: true },
+  { id: 's11', name: 'Powerball', side: SIDE.BI, duration: 150, active: true },
+  { id: 's12', name: 'Massage gun', side: SIDE.BI, duration: 120, active: true },
+  { id: 's13', name: 'Foam rolling', side: SIDE.BI, duration: 120, active: true },
+  { id: 's14', name: 'Thoracic spine twists', side: SIDE.LEFT, duration: 120, active: true },
+  { id: 's15', name: 'Thoracic spine twists', side: SIDE.RIGHT, duration: 120, active: true },
 ];
+
+function loadFullRoutine() {
+  try {
+    const raw = localStorage.getItem(ROUTINE_STORAGE_KEY);
+    if (!raw) return DEFAULT_ROUTINE.map(s => ({ ...s }));
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_ROUTINE.map(s => ({ ...s }));
+    return parsed;
+  } catch (e) {
+    return DEFAULT_ROUTINE.map(s => ({ ...s }));
+  }
+}
+
+function saveFullRoutine() {
+  try {
+    localStorage.setItem(ROUTINE_STORAGE_KEY, JSON.stringify(fullRoutine));
+  } catch (e) {
+    console.error('Could not save routine', e);
+  }
+}
+
+let fullRoutine = loadFullRoutine();
+let routine = []; // active steps snapshot for the current session
 
 const STORAGE_KEY = 'armWristStretchHistory';
 
 let currentIndex = 0;
-let timeLeft = routine[0].duration;
+let timeLeft = 0;
 let isPaused = false;
 let intervalId = null;
 let warningPlayed = false;
@@ -409,15 +705,26 @@ let currentSlot = null; // 'morning' or 'evening'
 const homeScreen = document.getElementById('homeScreen');
 const mainScreen = document.getElementById('mainScreen');
 const doneScreen = document.getElementById('doneScreen');
+const scheduleScreen = document.getElementById('scheduleScreen');
 
 const streakNum = document.getElementById('streakNum');
 const morningCard = document.getElementById('morningCard');
 const eveningCard = document.getElementById('eveningCard');
 const morningStatus = document.getElementById('morningStatus');
 const eveningStatus = document.getElementById('eveningStatus');
-const historyList = document.getElementById('historyList');
+const historyWeekdays = document.getElementById('historyWeekdays');
+const historyGrid = document.getElementById('historyGrid');
 const startBtn = document.getElementById('startBtn');
 const resetHistoryBtn = document.getElementById('resetHistoryBtn');
+const editScheduleBtn = document.getElementById('editScheduleBtn');
+
+const scheduleList = document.getElementById('scheduleList');
+const scheduleBackBtn = document.getElementById('scheduleBackBtn');
+const newTaskName = document.getElementById('newTaskName');
+const newTaskSide = document.getElementById('newTaskSide');
+const newTaskMin = document.getElementById('newTaskMin');
+const newTaskSec = document.getElementById('newTaskSec');
+const addTaskBtn = document.getElementById('addTaskBtn');
 
 const timerDisplay = document.getElementById('timerDisplay');
 const exerciseName = document.getElementById('exerciseName');
@@ -544,6 +851,33 @@ function computeStreak(history) {
   return streak;
 }
 
+function renderHistoryGrid(history) {
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    days.push({ key, date: d });
+  }
+
+  historyWeekdays.innerHTML = days.map(d =>
+    '<span>' + d.date.toLocaleDateString(undefined, { weekday: 'narrow' }) + '</span>'
+  ).join('');
+
+  const tKey = todayKey();
+  historyGrid.innerHTML = days.map(d => {
+    const entry = history[d.key] || {};
+    const level = (entry.morning ? 1 : 0) + (entry.evening ? 1 : 0);
+    const isToday = d.key === tKey;
+    const parts = [];
+    if (entry.morning) parts.push('morning done');
+    if (entry.evening) parts.push('evening done');
+    const summary = formatDateLabel(d.key) + ': ' + (parts.length ? parts.join(', ') : 'no sessions');
+    return '<div class="history-cell level-' + level + (isToday ? ' today' : '') +
+      '" title="' + summary + '">' + d.date.getDate() + '</div>';
+  }).join('');
+}
+
 function renderHome() {
   const history = loadHistory();
   const tKey = todayKey();
@@ -556,19 +890,7 @@ function renderHome() {
 
   streakNum.textContent = computeStreak(history);
 
-  const dateKeys = Object.keys(history).sort().reverse().slice(0, 10);
-  if (dateKeys.length === 0) {
-    historyList.innerHTML = '<div class="history-empty">No sessions logged yet</div>';
-  } else {
-    historyList.innerHTML = dateKeys.map(key => {
-      const entry = history[key];
-      const marks = [
-        entry.morning ? '🌅 morning' : null,
-        entry.evening ? '🌙 evening' : null
-      ].filter(Boolean).join(' · ') || 'no sessions';
-      return '<div class="history-row"><span class="history-date">' + formatDateLabel(key) + '</span><span class="history-marks">' + marks + '</span></div>';
-    }).join('');
-  }
+  renderHistoryGrid(history);
 
   if (!todayEntry.morning) {
     currentSlot = 'morning';
@@ -696,6 +1018,12 @@ function startInterval() {
 }
 
 function startSession() {
+  const active = fullRoutine.filter(s => s.active);
+  if (active.length === 0) {
+    alert('Add or turn on at least one exercise in your schedule before starting.');
+    return;
+  }
+  routine = active;
   getAudioCtx();
   playStartTone();
   currentIndex = 0;
@@ -750,6 +1078,97 @@ homeBtnDone.addEventListener('click', () => {
   mainScreen.style.display = 'none';
   homeScreen.classList.add('show');
   renderHome();
+});
+
+// ---------- Schedule editing ----------
+function renderSchedule() {
+  scheduleList.innerHTML = fullRoutine.map((step, idx) => {
+    const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
+    return (
+      '<div class="schedule-row' + (step.active ? '' : ' inactive') + '">' +
+        '<div class="schedule-reorder">' +
+          '<button class="reorder-btn" data-id="' + step.id + '" data-dir="-1"' + (idx === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>' +
+          '<button class="reorder-btn" data-id="' + step.id + '" data-dir="1"' + (idx === fullRoutine.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>' +
+        '</div>' +
+        '<div class="schedule-info">' +
+          '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
+          '<span class="schedule-name">' + step.name + '</span>' +
+          '<span class="schedule-duration">' + formatTime(step.duration) + '</span>' +
+        '</div>' +
+        '<div class="schedule-actions">' +
+          '<button class="active-toggle' + (step.active ? '' : ' off') + '" data-id="' + step.id + '" data-action="toggle">' + (step.active ? 'On' : 'Off') + '</button>' +
+          '<button class="delete-btn" data-id="' + step.id + '" data-action="delete" aria-label="Delete exercise">&#10005;</button>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+scheduleList.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const idx = fullRoutine.findIndex(s => s.id === id);
+  if (idx === -1) return;
+
+  if (btn.dataset.dir) {
+    const dir = parseInt(btn.dataset.dir, 10);
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= fullRoutine.length) return;
+    const tmp = fullRoutine[idx];
+    fullRoutine[idx] = fullRoutine[swapIdx];
+    fullRoutine[swapIdx] = tmp;
+    saveFullRoutine();
+    renderSchedule();
+  } else if (btn.dataset.action === 'toggle') {
+    fullRoutine[idx].active = !fullRoutine[idx].active;
+    saveFullRoutine();
+    renderSchedule();
+  } else if (btn.dataset.action === 'delete') {
+    if (confirm('Remove "' + fullRoutine[idx].name + '" from the schedule?')) {
+      fullRoutine.splice(idx, 1);
+      saveFullRoutine();
+      renderSchedule();
+    }
+  }
+});
+
+addTaskBtn.addEventListener('click', () => {
+  const name = newTaskName.value.trim();
+  if (!name) {
+    alert('Enter a name for the exercise.');
+    return;
+  }
+  const min = Math.max(0, parseInt(newTaskMin.value, 10) || 0);
+  const sec = Math.max(0, parseInt(newTaskSec.value, 10) || 0);
+  const duration = min * 60 + sec;
+  if (duration < 5) {
+    alert('Duration must be at least 5 seconds.');
+    return;
+  }
+  fullRoutine.push({
+    id: 'custom-' + Date.now(),
+    name: name,
+    side: newTaskSide.value,
+    duration: duration,
+    active: true
+  });
+  saveFullRoutine();
+  renderSchedule();
+  newTaskName.value = '';
+  newTaskMin.value = 1;
+  newTaskSec.value = 0;
+});
+
+editScheduleBtn.addEventListener('click', () => {
+  homeScreen.classList.remove('show');
+  scheduleScreen.style.display = 'block';
+  renderSchedule();
+});
+
+scheduleBackBtn.addEventListener('click', () => {
+  scheduleScreen.style.display = 'none';
+  homeScreen.classList.add('show');
 });
 
 // ---------- Init ----------
