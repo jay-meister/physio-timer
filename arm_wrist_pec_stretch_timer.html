@@ -420,11 +420,24 @@
     gap: 10px;
     flex-wrap: wrap;
   }
-  .schedule-name, .schedule-view-name {
+  .schedule-name-input, .schedule-view-name {
     font-size: 16px;
     font-weight: 700;
     line-height: 1.35;
     flex: 1 1 160px;
+  }
+  .schedule-name-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed rgba(255,255,255,0.3);
+    color: var(--text);
+    font-family: inherit;
+    padding: 2px 2px 4px;
+    min-width: 120px;
+  }
+  .schedule-name-input:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
   }
   .off-badge {
     flex: none;
@@ -1135,6 +1148,14 @@ homeBtnDone.addEventListener('click', () => {
 });
 
 // ---------- Schedule viewing / editing ----------
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function renderScheduleView() {
   scheduleViewList.innerHTML = fullRoutine.map((step) => {
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
@@ -1143,7 +1164,7 @@ function renderScheduleView() {
       '<div class="schedule-view-row' + (step.active ? '' : ' inactive') + '">' +
         '<div class="schedule-view-top">' +
           '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
-          '<span class="schedule-view-name">' + step.name + '</span>' +
+          '<span class="schedule-view-name">' + escapeHtml(step.name) + '</span>' +
           offBadge +
         '</div>' +
         '<div class="schedule-view-duration">' + formatTime(step.duration) + '</div>' +
@@ -1159,7 +1180,7 @@ function renderSchedule() {
       '<div class="schedule-row' + (step.active ? '' : ' inactive') + '">' +
         '<div class="schedule-row-top">' +
           '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
-          '<span class="schedule-name">' + step.name + '</span>' +
+          '<input type="text" class="schedule-name-input" data-id="' + step.id + '" value="' + escapeHtml(step.name) + '" aria-label="Exercise name" maxlength="60">' +
         '</div>' +
         '<div class="schedule-row-bottom">' +
           '<span class="schedule-duration">' + formatTime(step.duration) + '</span>' +
@@ -1204,6 +1225,25 @@ scheduleList.addEventListener('click', (e) => {
       renderSchedule();
     }
   }
+});
+
+scheduleList.addEventListener('input', (e) => {
+  const input = e.target.closest('.schedule-name-input');
+  if (!input) return;
+  const idx = fullRoutine.findIndex(s => s.id === input.dataset.id);
+  if (idx === -1) return;
+  fullRoutine[idx].name = input.value;
+});
+
+scheduleList.addEventListener('change', (e) => {
+  const input = e.target.closest('.schedule-name-input');
+  if (!input) return;
+  const idx = fullRoutine.findIndex(s => s.id === input.dataset.id);
+  if (idx === -1) return;
+  const trimmed = input.value.trim();
+  fullRoutine[idx].name = trimmed || fullRoutine[idx].name || 'Exercise';
+  input.value = fullRoutine[idx].name;
+  saveFullRoutine();
 });
 
 addTaskBtn.addEventListener('click', () => {
