@@ -40,7 +40,9 @@
     margin: 0 auto;
     min-height: 100vh;
     background: var(--card);
-    padding: 32px 24px 48px;
+    padding: 24px 24px 48px;
+    padding-top: calc(28px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
     text-align: center;
   }
   h1 {
@@ -477,6 +479,21 @@
     font-variant-numeric: tabular-nums;
     flex: 1;
     text-align: left;
+  }
+  .schedule-view-sides {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .schedule-view-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .schedule-view-side-duration {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
   }
   .schedule-actions {
     display: flex;
@@ -1156,8 +1173,61 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+function buildScheduleViewGroups(list) {
+  const used = new Set();
+  const groups = [];
+  list.forEach((step, i) => {
+    if (used.has(step.id)) return;
+    if (step.side === SIDE.LEFT || step.side === SIDE.RIGHT) {
+      const oppositeSide = step.side === SIDE.LEFT ? SIDE.RIGHT : SIDE.LEFT;
+      const pairIdx = list.findIndex((s, j) =>
+        j !== i && !used.has(s.id) && s.name === step.name && s.side === oppositeSide
+      );
+      if (pairIdx !== -1) {
+        const pairStep = list[pairIdx];
+        used.add(step.id);
+        used.add(pairStep.id);
+        const left = step.side === SIDE.LEFT ? step : pairStep;
+        const right = step.side === SIDE.RIGHT ? step : pairStep;
+        groups.push({ type: 'pair', name: step.name, left, right });
+        return;
+      }
+    }
+    used.add(step.id);
+    groups.push({ type: 'single', step });
+  });
+  return groups;
+}
+
 function renderScheduleView() {
-  scheduleViewList.innerHTML = fullRoutine.map((step) => {
+  const groups = buildScheduleViewGroups(fullRoutine);
+  scheduleViewList.innerHTML = groups.map((group) => {
+    if (group.type === 'pair') {
+      const sideBlock = (step) => {
+        const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
+        const offBadge = step.active ? '' : '<span class="off-badge">Off</span>';
+        return (
+          '<div class="schedule-view-side">' +
+            '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
+            '<span class="schedule-view-side-duration">' + formatTime(step.duration) + '</span>' +
+            offBadge +
+          '</div>'
+        );
+      };
+      const allInactive = !group.left.active && !group.right.active;
+      return (
+        '<div class="schedule-view-row' + (allInactive ? ' inactive' : '') + '">' +
+          '<div class="schedule-view-top">' +
+            '<span class="schedule-view-name">' + escapeHtml(group.name) + '</span>' +
+          '</div>' +
+          '<div class="schedule-view-sides">' +
+            sideBlock(group.left) +
+            sideBlock(group.right) +
+          '</div>' +
+        '</div>'
+      );
+    }
+    const step = group.step;
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
     const offBadge = step.active ? '' : '<span class="off-badge">Off</span>';
     return (
