@@ -1233,11 +1233,15 @@ function renderScheduleView() {
     return (
       '<div class="schedule-view-row' + (step.active ? '' : ' inactive') + '">' +
         '<div class="schedule-view-top">' +
-          '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
           '<span class="schedule-view-name">' + escapeHtml(step.name) + '</span>' +
-          offBadge +
         '</div>' +
-        '<div class="schedule-view-duration">' + formatTime(step.duration) + '</div>' +
+        '<div class="schedule-view-sides">' +
+          '<div class="schedule-view-side">' +
+            '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
+            '<span class="schedule-view-side-duration">' + formatTime(step.duration) + '</span>' +
+            offBadge +
+          '</div>' +
+        '</div>' +
       '</div>'
     );
   }).join('');
