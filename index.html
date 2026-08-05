@@ -30,21 +30,17 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--bg);
+    background: var(--card);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
   }
   .app {
     width: 100%;
-    max-width: 480px;
+    max-width: 560px;
+    margin: 0 auto;
+    min-height: 100vh;
     background: var(--card);
-    border-radius: 20px;
-    padding: 32px 28px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    padding: 32px 24px 48px;
     text-align: center;
   }
   h1 {
@@ -237,18 +233,21 @@
   }
   .history-weekdays {
     display: flex;
-    gap: 4px;
-    margin-bottom: 4px;
+    gap: 6px;
+    margin-bottom: 6px;
   }
   .history-weekdays span {
     flex: 1;
     text-align: center;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--muted);
   }
   .history-grid {
     display: flex;
-    gap: 4px;
+    gap: 6px;
+  }
+  .history-grid + .history-grid {
+    margin-top: 6px;
   }
   .history-cell {
     flex: 1;
@@ -257,7 +256,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 700;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.06);
@@ -308,7 +307,7 @@
     cursor: pointer;
   }
   #startBtn:active { transform: scale(0.98); }
-  #editScheduleBtn {
+  #scheduleBtn {
     width: 100%;
     margin-top: 10px;
     padding: 14px 0;
@@ -320,6 +319,18 @@
     font-weight: 700;
     cursor: pointer;
   }
+  #goToEditBtn {
+    width: 100%;
+    padding: 16px 0;
+    background: var(--accent);
+    color: #08211c;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  #goToEditBtn:active { transform: scale(0.98); }
   #resetHistoryBtn {
     margin-top: 14px;
     background: none;
@@ -352,8 +363,8 @@
     justify-content: center;
   }
 
-  /* Schedule editing screen */
-  #scheduleScreen {
+  /* Schedule screens */
+  #scheduleScreen, #scheduleViewScreen {
     display: none;
     width: 100%;
   }
@@ -368,12 +379,15 @@
     margin: 0;
     text-align: center;
   }
-  #scheduleBackBtn, .schedule-spacer {
+  .schedule-spacer {
     flex: none;
     width: 34px;
     height: 34px;
   }
-  #scheduleBackBtn {
+  .back-circle-btn {
+    flex: none;
+    width: 34px;
+    height: 34px;
     padding: 0;
     border-radius: 50%;
     background: rgba(255,255,255,0.08);
@@ -383,63 +397,73 @@
     align-items: center;
     justify-content: center;
   }
-  .schedule-list {
-    max-height: 340px;
-    overflow-y: auto;
+  .schedule-list, .schedule-view-list {
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     text-align: left;
   }
-  .schedule-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 12px;
-    padding: 8px 10px;
-    transition: opacity 0.2s;
-  }
-  .schedule-row.inactive { opacity: 0.45; }
-  .schedule-reorder {
+  .schedule-row, .schedule-view-row {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: opacity 0.2s;
+  }
+  .schedule-row.inactive, .schedule-view-row.inactive { opacity: 0.45; }
+  .schedule-row-top, .schedule-view-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .schedule-name, .schedule-view-name {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    flex: 1 1 160px;
+  }
+  .off-badge {
+    flex: none;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    background: rgba(255,255,255,0.08);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .schedule-row-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .schedule-reorder {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
     flex: none;
   }
   .reorder-btn {
     flex: none;
-    width: 24px;
-    height: 20px;
+    width: 30px;
+    height: 28px;
     padding: 0;
-    font-size: 9px;
+    font-size: 10px;
     border-radius: 6px;
     background: rgba(255,255,255,0.08);
     color: var(--text);
   }
   .reorder-btn:disabled { opacity: 0.25; cursor: default; }
-  .schedule-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .schedule-name {
+  .schedule-duration, .schedule-view-duration {
     font-size: 13px;
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 1;
-    min-width: 0;
-  }
-  .schedule-duration {
-    font-size: 12px;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
-    flex: none;
+    flex: 1;
+    text-align: left;
   }
   .schedule-actions {
     display: flex;
@@ -450,8 +474,8 @@
   .active-toggle {
     flex: none;
     width: auto;
-    padding: 6px 10px;
-    font-size: 11px;
+    padding: 7px 12px;
+    font-size: 12px;
     border-radius: 999px;
     background: rgba(62,198,165,0.18);
     color: var(--accent);
@@ -462,13 +486,13 @@
   }
   .delete-btn {
     flex: none;
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     padding: 0;
     border-radius: 8px;
     background: rgba(247,79,79,0.14);
     color: #f79b9b;
-    font-size: 13px;
+    font-size: 14px;
   }
   .schedule-add {
     background: rgba(255,255,255,0.04);
@@ -560,7 +584,8 @@
     <div class="history-block">
       <div class="history-label">Last 2 Weeks</div>
       <div class="history-weekdays" id="historyWeekdays"></div>
-      <div class="history-grid" id="historyGrid"></div>
+      <div class="history-grid" id="historyGridTop"></div>
+      <div class="history-grid" id="historyGridBottom"></div>
       <div class="history-legend">
         <span><span class="legend-dot level-0"></span>None</span>
         <span><span class="legend-dot level-1"></span>1 session</span>
@@ -569,14 +594,27 @@
     </div>
 
     <button id="startBtn">Start Session</button>
-    <button id="editScheduleBtn">Edit Schedule</button>
+    <button id="scheduleBtn">Schedule</button>
     <button id="resetHistoryBtn">Clear history</button>
+  </div>
+
+  <!-- SCHEDULE VIEW (read-only) SCREEN -->
+  <div id="scheduleViewScreen">
+    <div class="schedule-header">
+      <button id="scheduleViewBackBtn" class="back-circle-btn" aria-label="Back to home">&#8592;</button>
+      <h1>Schedule</h1>
+      <div class="schedule-spacer"></div>
+    </div>
+
+    <div class="schedule-view-list" id="scheduleViewList"></div>
+
+    <button id="goToEditBtn">Edit Schedule</button>
   </div>
 
   <!-- SCHEDULE EDITING SCREEN -->
   <div id="scheduleScreen">
     <div class="schedule-header">
-      <button id="scheduleBackBtn" aria-label="Back to home">&#8592;</button>
+      <button id="scheduleEditBackBtn" class="back-circle-btn" aria-label="Back to schedule">&#8592;</button>
       <h1>Edit Schedule</h1>
       <div class="schedule-spacer"></div>
     </div>
@@ -706,6 +744,7 @@ const homeScreen = document.getElementById('homeScreen');
 const mainScreen = document.getElementById('mainScreen');
 const doneScreen = document.getElementById('doneScreen');
 const scheduleScreen = document.getElementById('scheduleScreen');
+const scheduleViewScreen = document.getElementById('scheduleViewScreen');
 
 const streakNum = document.getElementById('streakNum');
 const morningCard = document.getElementById('morningCard');
@@ -713,13 +752,18 @@ const eveningCard = document.getElementById('eveningCard');
 const morningStatus = document.getElementById('morningStatus');
 const eveningStatus = document.getElementById('eveningStatus');
 const historyWeekdays = document.getElementById('historyWeekdays');
-const historyGrid = document.getElementById('historyGrid');
+const historyGridTop = document.getElementById('historyGridTop');
+const historyGridBottom = document.getElementById('historyGridBottom');
 const startBtn = document.getElementById('startBtn');
 const resetHistoryBtn = document.getElementById('resetHistoryBtn');
-const editScheduleBtn = document.getElementById('editScheduleBtn');
+const scheduleBtn = document.getElementById('scheduleBtn');
+
+const scheduleViewList = document.getElementById('scheduleViewList');
+const scheduleViewBackBtn = document.getElementById('scheduleViewBackBtn');
+const goToEditBtn = document.getElementById('goToEditBtn');
 
 const scheduleList = document.getElementById('scheduleList');
-const scheduleBackBtn = document.getElementById('scheduleBackBtn');
+const scheduleEditBackBtn = document.getElementById('scheduleEditBackBtn');
 const newTaskName = document.getElementById('newTaskName');
 const newTaskSide = document.getElementById('newTaskSide');
 const newTaskMin = document.getElementById('newTaskMin');
@@ -860,22 +904,32 @@ function renderHistoryGrid(history) {
     days.push({ key, date: d });
   }
 
-  historyWeekdays.innerHTML = days.map(d =>
+  // Two 7-day rows: since a week is exactly 7 days, day i and day i-7
+  // always share the same weekday, so the two rows line up by column.
+  const week1 = days.slice(0, 7);
+  const week2 = days.slice(7, 14);
+
+  historyWeekdays.innerHTML = week2.map(d =>
     '<span>' + d.date.toLocaleDateString(undefined, { weekday: 'narrow' }) + '</span>'
   ).join('');
 
   const tKey = todayKey();
-  historyGrid.innerHTML = days.map(d => {
-    const entry = history[d.key] || {};
-    const level = (entry.morning ? 1 : 0) + (entry.evening ? 1 : 0);
-    const isToday = d.key === tKey;
-    const parts = [];
-    if (entry.morning) parts.push('morning done');
-    if (entry.evening) parts.push('evening done');
-    const summary = formatDateLabel(d.key) + ': ' + (parts.length ? parts.join(', ') : 'no sessions');
-    return '<div class="history-cell level-' + level + (isToday ? ' today' : '') +
-      '" title="' + summary + '">' + d.date.getDate() + '</div>';
-  }).join('');
+  function buildRow(weekDays) {
+    return weekDays.map(d => {
+      const entry = history[d.key] || {};
+      const level = (entry.morning ? 1 : 0) + (entry.evening ? 1 : 0);
+      const isToday = d.key === tKey;
+      const parts = [];
+      if (entry.morning) parts.push('morning done');
+      if (entry.evening) parts.push('evening done');
+      const summary = formatDateLabel(d.key) + ': ' + (parts.length ? parts.join(', ') : 'no sessions');
+      return '<div class="history-cell level-' + level + (isToday ? ' today' : '') +
+        '" title="' + summary + '">' + d.date.getDate() + '</div>';
+    }).join('');
+  }
+
+  historyGridTop.innerHTML = buildRow(week1);
+  historyGridBottom.innerHTML = buildRow(week2);
 }
 
 function renderHome() {
@@ -1080,24 +1134,43 @@ homeBtnDone.addEventListener('click', () => {
   renderHome();
 });
 
-// ---------- Schedule editing ----------
+// ---------- Schedule viewing / editing ----------
+function renderScheduleView() {
+  scheduleViewList.innerHTML = fullRoutine.map((step) => {
+    const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
+    const offBadge = step.active ? '' : '<span class="off-badge">Off</span>';
+    return (
+      '<div class="schedule-view-row' + (step.active ? '' : ' inactive') + '">' +
+        '<div class="schedule-view-top">' +
+          '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
+          '<span class="schedule-view-name">' + step.name + '</span>' +
+          offBadge +
+        '</div>' +
+        '<div class="schedule-view-duration">' + formatTime(step.duration) + '</div>' +
+      '</div>'
+    );
+  }).join('');
+}
+
 function renderSchedule() {
   scheduleList.innerHTML = fullRoutine.map((step, idx) => {
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
     return (
       '<div class="schedule-row' + (step.active ? '' : ' inactive') + '">' +
-        '<div class="schedule-reorder">' +
-          '<button class="reorder-btn" data-id="' + step.id + '" data-dir="-1"' + (idx === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>' +
-          '<button class="reorder-btn" data-id="' + step.id + '" data-dir="1"' + (idx === fullRoutine.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>' +
-        '</div>' +
-        '<div class="schedule-info">' +
+        '<div class="schedule-row-top">' +
           '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
           '<span class="schedule-name">' + step.name + '</span>' +
-          '<span class="schedule-duration">' + formatTime(step.duration) + '</span>' +
         '</div>' +
-        '<div class="schedule-actions">' +
-          '<button class="active-toggle' + (step.active ? '' : ' off') + '" data-id="' + step.id + '" data-action="toggle">' + (step.active ? 'On' : 'Off') + '</button>' +
-          '<button class="delete-btn" data-id="' + step.id + '" data-action="delete" aria-label="Delete exercise">&#10005;</button>' +
+        '<div class="schedule-row-bottom">' +
+          '<span class="schedule-duration">' + formatTime(step.duration) + '</span>' +
+          '<div class="schedule-reorder">' +
+            '<button class="reorder-btn" data-id="' + step.id + '" data-dir="-1"' + (idx === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>' +
+            '<button class="reorder-btn" data-id="' + step.id + '" data-dir="1"' + (idx === fullRoutine.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>' +
+          '</div>' +
+          '<div class="schedule-actions">' +
+            '<button class="active-toggle' + (step.active ? '' : ' off') + '" data-id="' + step.id + '" data-action="toggle">' + (step.active ? 'On' : 'Off') + '</button>' +
+            '<button class="delete-btn" data-id="' + step.id + '" data-action="delete" aria-label="Delete exercise">&#10005;</button>' +
+          '</div>' +
         '</div>' +
       '</div>'
     );
@@ -1160,15 +1233,27 @@ addTaskBtn.addEventListener('click', () => {
   newTaskSec.value = 0;
 });
 
-editScheduleBtn.addEventListener('click', () => {
+scheduleBtn.addEventListener('click', () => {
   homeScreen.classList.remove('show');
+  scheduleViewScreen.style.display = 'block';
+  renderScheduleView();
+});
+
+scheduleViewBackBtn.addEventListener('click', () => {
+  scheduleViewScreen.style.display = 'none';
+  homeScreen.classList.add('show');
+});
+
+goToEditBtn.addEventListener('click', () => {
+  scheduleViewScreen.style.display = 'none';
   scheduleScreen.style.display = 'block';
   renderSchedule();
 });
 
-scheduleBackBtn.addEventListener('click', () => {
+scheduleEditBackBtn.addEventListener('click', () => {
   scheduleScreen.style.display = 'none';
-  homeScreen.classList.add('show');
+  scheduleViewScreen.style.display = 'block';
+  renderScheduleView();
 });
 
 // ---------- Init ----------
