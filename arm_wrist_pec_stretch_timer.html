@@ -23,6 +23,7 @@
     --left: #4f8ef7;
     --right: #f77f4f;
     --bi: #b58bf0;
+    --none: #f2c14e;
     --text: #f2f4f8;
     --muted: #8a91a3;
   }
@@ -71,6 +72,7 @@
   .side-left { background: rgba(79,142,247,0.18); color: var(--left); }
   .side-right { background: rgba(247,127,79,0.18); color: var(--right); }
   .side-bi { background: rgba(181,139,240,0.18); color: var(--bi); }
+  .side-none { background: rgba(242,193,78,0.18); color: var(--none); }
 
   .exercise-name {
     font-size: 26px;
@@ -81,6 +83,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  .exercise-note {
+    display: none;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.4;
+    margin: -12px 0 20px;
   }
 
   .timer {
@@ -495,6 +505,61 @@
     color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
+  .schedule-view-note {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  .each-side-hint {
+    font-size: 10px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .schedule-duration-edit {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+  .duration-min-input, .duration-sec-input {
+    width: 34px;
+    padding: 6px 2px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    font-size: 13px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .duration-min-input:focus, .duration-sec-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .duration-colon {
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .schedule-note-input {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    font-size: 12px;
+    font-style: italic;
+    font-family: inherit;
+  }
+  .schedule-note-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .schedule-note-input::placeholder {
+    font-style: italic;
+  }
   .schedule-actions {
     display: flex;
     align-items: center;
@@ -591,7 +656,7 @@
   <!-- HOME / TRACKING SCREEN -->
   <div class="home-screen show" id="homeScreen">
     <h1>Arm & Wrist Stretch Routine</h1>
-    <div class="progress-label">Twice daily · ~22 minutes each</div>
+    <div class="progress-label" id="homeSubtitle">Twice daily · ~22 minutes each</div>
 
     <div class="streak-block">
       <div class="streak-num" id="streakNum">0</div>
@@ -659,11 +724,13 @@
           <option value="bi">Both Arms</option>
           <option value="left">Left</option>
           <option value="right">Right</option>
+          <option value="none">Whole Body</option>
         </select>
         <input type="number" id="newTaskMin" min="0" max="30" value="1" aria-label="Minutes">
         <span class="schedule-add-colon">:</span>
         <input type="number" id="newTaskSec" min="0" max="59" step="5" value="0" aria-label="Seconds">
       </div>
+      <input type="text" id="newTaskNote" placeholder="Cue or note (optional)" maxlength="120" style="margin-bottom: 12px;">
       <button id="addTaskBtn">Add to Schedule</button>
     </div>
   </div>
@@ -676,6 +743,7 @@
 
     <div id="sideTag" class="side-tag side-bi">Both Arms</div>
     <div class="exercise-name" id="exerciseName">Arm loosening & stretching</div>
+    <div class="exercise-note" id="exerciseNote"></div>
 
     <div class="timer" id="timerDisplay">2:00</div>
     <div class="bar-wrap"><div class="bar-fill" id="barFill"></div></div>
@@ -707,34 +775,35 @@
 </div>
 
 <script>
-const SIDE = { LEFT: 'left', RIGHT: 'right', BI: 'bi' };
-const SIDE_LABELS = { left: 'Left', right: 'Right', bi: 'Both Arms' };
-const SIDE_CLASS = { left: 'side-left', right: 'side-right', bi: 'side-bi' };
-const SIDE_COLOR = { left: 'var(--left)', right: 'var(--right)', bi: 'var(--bi)' };
+const SIDE = { LEFT: 'left', RIGHT: 'right', BI: 'bi', NONE: 'none' };
+const SIDE_LABELS = { left: 'Left', right: 'Right', bi: 'Both Arms', none: 'Whole Body' };
+const SIDE_CLASS = { left: 'side-left', right: 'side-right', bi: 'side-bi', none: 'side-none' };
+const SIDE_COLOR = { left: 'var(--left)', right: 'var(--right)', bi: 'var(--bi)', none: 'var(--none)' };
 const SIDE_BG = {
   left: 'rgba(79,142,247,0.18)',
   right: 'rgba(247,127,79,0.18)',
-  bi: 'rgba(181,139,240,0.18)'
+  bi: 'rgba(181,139,240,0.18)',
+  none: 'rgba(242,193,78,0.18)'
 };
 
 const ROUTINE_STORAGE_KEY = 'armWristStretchRoutineV1';
 
 const DEFAULT_ROUTINE = [
-  { id: 's1', name: 'Arm loosening & stretching', side: SIDE.BI, duration: 120, active: true },
-  { id: 's2', name: 'Pectoral stretch against wall', side: SIDE.LEFT, duration: 80, active: true },
-  { id: 's3', name: 'Pectoral stretch against wall', side: SIDE.RIGHT, duration: 80, active: true },
-  { id: 's4', name: 'Wrist stretch, hands on floor', side: SIDE.BI, duration: 120, active: true },
-  { id: 's5', name: 'Bicep & extensor stretch — wrist pointing down', side: SIDE.BI, duration: 60, active: true },
-  { id: 's6', name: 'Bicep & extensor stretch — hands behind body', side: SIDE.BI, duration: 60, active: true },
-  { id: 's7', name: 'Self-massage pectoral muscles', side: SIDE.LEFT, duration: 60, active: true },
-  { id: 's8', name: 'Self-massage pectoral muscles', side: SIDE.RIGHT, duration: 60, active: true },
-  { id: 's9', name: 'Self-massage forearm twists', side: SIDE.LEFT, duration: 60, active: true },
-  { id: 's10', name: 'Self-massage forearm twists', side: SIDE.RIGHT, duration: 60, active: true },
-  { id: 's11', name: 'Powerball', side: SIDE.BI, duration: 150, active: true },
-  { id: 's12', name: 'Massage gun', side: SIDE.BI, duration: 120, active: true },
-  { id: 's13', name: 'Foam rolling', side: SIDE.BI, duration: 120, active: true },
-  { id: 's14', name: 'Thoracic spine twists', side: SIDE.LEFT, duration: 120, active: true },
-  { id: 's15', name: 'Thoracic spine twists', side: SIDE.RIGHT, duration: 120, active: true },
+  { id: 's1', name: 'Arm loosening & stretching', side: SIDE.BI, duration: 120, active: true, notes: '' },
+  { id: 's2', name: 'Pectoral stretch against wall', side: SIDE.LEFT, duration: 80, active: true, notes: '' },
+  { id: 's3', name: 'Pectoral stretch against wall', side: SIDE.RIGHT, duration: 80, active: true, notes: '' },
+  { id: 's4', name: 'Wrist stretch, hands on floor', side: SIDE.BI, duration: 120, active: true, notes: '' },
+  { id: 's5', name: 'Bicep & extensor stretch — wrist pointing down', side: SIDE.BI, duration: 60, active: true, notes: '' },
+  { id: 's6', name: 'Bicep & extensor stretch — hands behind body', side: SIDE.BI, duration: 60, active: true, notes: '' },
+  { id: 's7', name: 'Self-massage pectoral muscles', side: SIDE.LEFT, duration: 60, active: true, notes: '' },
+  { id: 's8', name: 'Self-massage pectoral muscles', side: SIDE.RIGHT, duration: 60, active: true, notes: '' },
+  { id: 's9', name: 'Self-massage forearm twists', side: SIDE.LEFT, duration: 60, active: true, notes: '' },
+  { id: 's10', name: 'Self-massage forearm twists', side: SIDE.RIGHT, duration: 60, active: true, notes: '' },
+  { id: 's11', name: 'Powerball', side: SIDE.BI, duration: 150, active: true, notes: '' },
+  { id: 's12', name: 'Massage gun', side: SIDE.BI, duration: 120, active: true, notes: '' },
+  { id: 's13', name: 'Foam rolling', side: SIDE.BI, duration: 120, active: true, notes: '' },
+  { id: 's14', name: 'Thoracic spine twists', side: SIDE.LEFT, duration: 120, active: true, notes: '' },
+  { id: 's15', name: 'Thoracic spine twists', side: SIDE.RIGHT, duration: 120, active: true, notes: '' },
 ];
 
 function loadFullRoutine() {
@@ -776,6 +845,7 @@ const doneScreen = document.getElementById('doneScreen');
 const scheduleScreen = document.getElementById('scheduleScreen');
 const scheduleViewScreen = document.getElementById('scheduleViewScreen');
 
+const homeSubtitle = document.getElementById('homeSubtitle');
 const streakNum = document.getElementById('streakNum');
 const morningCard = document.getElementById('morningCard');
 const eveningCard = document.getElementById('eveningCard');
@@ -799,9 +869,11 @@ const newTaskSide = document.getElementById('newTaskSide');
 const newTaskMin = document.getElementById('newTaskMin');
 const newTaskSec = document.getElementById('newTaskSec');
 const addTaskBtn = document.getElementById('addTaskBtn');
+const newTaskNote = document.getElementById('newTaskNote');
 
 const timerDisplay = document.getElementById('timerDisplay');
 const exerciseName = document.getElementById('exerciseName');
+const exerciseNote = document.getElementById('exerciseNote');
 const sideTag = document.getElementById('sideTag');
 const progressLabel = document.getElementById('progressLabel');
 const barFill = document.getElementById('barFill');
@@ -962,7 +1034,17 @@ function renderHistoryGrid(history) {
   historyGridBottom.innerHTML = buildRow(week2);
 }
 
+function computeTotalDuration() {
+  return fullRoutine
+    .filter(s => s.active)
+    .reduce((sum, s) => sum + (s.side === SIDE.BI ? s.duration * 2 : s.duration), 0);
+}
+
 function renderHome() {
+  const totalSeconds = computeTotalDuration();
+  const totalMinutes = Math.max(1, Math.round(totalSeconds / 60));
+  homeSubtitle.textContent = 'Twice daily · ~' + totalMinutes + ' minute' + (totalMinutes === 1 ? '' : 's') + ' each';
+
   const history = loadHistory();
   const tKey = todayKey();
   const todayEntry = history[tKey] || { morning: false, evening: false };
@@ -1017,6 +1099,13 @@ function renderStep() {
   const step = routine[currentIndex];
   exerciseName.textContent = step.name;
   updateSideTag(sideTag, step.side);
+  if (step.notes) {
+    exerciseNote.textContent = step.notes;
+    exerciseNote.style.display = 'block';
+  } else {
+    exerciseNote.textContent = '';
+    exerciseNote.style.display = 'none';
+  }
   progressLabel.textContent = 'Step ' + (currentIndex + 1) + ' of ' + routine.length;
   timerDisplay.textContent = formatTime(timeLeft);
   timerDisplay.classList.remove('warning');
@@ -1101,13 +1190,29 @@ function startInterval() {
   intervalId = setInterval(tick, 1000);
 }
 
-function startSession() {
+function buildSessionRoutine() {
   const active = fullRoutine.filter(s => s.active);
-  if (active.length === 0) {
+  const expanded = [];
+  active.forEach((step) => {
+    if (step.side === SIDE.BI) {
+      // "Both Arms" means the same exercise performed left then right,
+      // with the stored duration applying to each side individually.
+      expanded.push({ ...step, side: SIDE.LEFT });
+      expanded.push({ ...step, side: SIDE.RIGHT });
+    } else {
+      expanded.push({ ...step });
+    }
+  });
+  return expanded;
+}
+
+function startSession() {
+  const expanded = buildSessionRoutine();
+  if (expanded.length === 0) {
     alert('Add or turn on at least one exercise in your schedule before starting.');
     return;
   }
-  routine = active;
+  routine = expanded;
   getAudioCtx();
   playStartTone();
   currentIndex = 0;
@@ -1215,6 +1320,10 @@ function renderScheduleView() {
         );
       };
       const allInactive = !group.left.active && !group.right.active;
+      const notesParts = [];
+      if (group.left.notes) notesParts.push('L: ' + escapeHtml(group.left.notes));
+      if (group.right.notes) notesParts.push('R: ' + escapeHtml(group.right.notes));
+      const notesHtml = notesParts.length ? '<div class="schedule-view-note">' + notesParts.join(' · ') + '</div>' : '';
       return (
         '<div class="schedule-view-row' + (allInactive ? ' inactive' : '') + '">' +
           '<div class="schedule-view-top">' +
@@ -1224,12 +1333,15 @@ function renderScheduleView() {
             sideBlock(group.left) +
             sideBlock(group.right) +
           '</div>' +
+          notesHtml +
         '</div>'
       );
     }
     const step = group.step;
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
     const offBadge = step.active ? '' : '<span class="off-badge">Off</span>';
+    const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">each side</span>' : '';
+    const notesHtml = step.notes ? '<div class="schedule-view-note">' + escapeHtml(step.notes) + '</div>' : '';
     return (
       '<div class="schedule-view-row' + (step.active ? '' : ' inactive') + '">' +
         '<div class="schedule-view-top">' +
@@ -1239,9 +1351,11 @@ function renderScheduleView() {
           '<div class="schedule-view-side">' +
             '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
             '<span class="schedule-view-side-duration">' + formatTime(step.duration) + '</span>' +
+            eachSideHint +
             offBadge +
           '</div>' +
         '</div>' +
+        notesHtml +
       '</div>'
     );
   }).join('');
@@ -1250,6 +1364,9 @@ function renderScheduleView() {
 function renderSchedule() {
   scheduleList.innerHTML = fullRoutine.map((step, idx) => {
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
+    const mins = Math.floor(step.duration / 60);
+    const secs = step.duration % 60;
+    const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">each side</span>' : '';
     return (
       '<div class="schedule-row' + (step.active ? '' : ' inactive') + '">' +
         '<div class="schedule-row-top">' +
@@ -1257,7 +1374,12 @@ function renderSchedule() {
           '<input type="text" class="schedule-name-input" data-id="' + step.id + '" value="' + escapeHtml(step.name) + '" aria-label="Exercise name" maxlength="60">' +
         '</div>' +
         '<div class="schedule-row-bottom">' +
-          '<span class="schedule-duration">' + formatTime(step.duration) + '</span>' +
+          '<div class="schedule-duration-edit">' +
+            '<input type="number" class="duration-min-input" data-id="' + step.id + '" min="0" max="59" value="' + mins + '" aria-label="Minutes">' +
+            '<span class="duration-colon">:</span>' +
+            '<input type="number" class="duration-sec-input" data-id="' + step.id + '" min="0" max="59" value="' + String(secs).padStart(2, '0') + '" aria-label="Seconds">' +
+            eachSideHint +
+          '</div>' +
           '<div class="schedule-reorder">' +
             '<button class="reorder-btn" data-id="' + step.id + '" data-dir="-1"' + (idx === 0 ? ' disabled' : '') + ' aria-label="Move up">&#9650;</button>' +
             '<button class="reorder-btn" data-id="' + step.id + '" data-dir="1"' + (idx === fullRoutine.length - 1 ? ' disabled' : '') + ' aria-label="Move down">&#9660;</button>' +
@@ -1267,6 +1389,7 @@ function renderSchedule() {
             '<button class="delete-btn" data-id="' + step.id + '" data-action="delete" aria-label="Delete exercise">&#10005;</button>' +
           '</div>' +
         '</div>' +
+        '<input type="text" class="schedule-note-input" data-id="' + step.id + '" value="' + escapeHtml(step.notes || '') + '" placeholder="Add a cue or note (optional)" maxlength="120" aria-label="Cue or note">' +
       '</div>'
     );
   }).join('');
@@ -1301,22 +1424,81 @@ scheduleList.addEventListener('click', (e) => {
   }
 });
 
+function getRowDuration(row, enforceMin) {
+  const minEl = row.querySelector('.duration-min-input');
+  const secEl = row.querySelector('.duration-sec-input');
+  const min = Math.max(0, parseInt(minEl.value, 10) || 0);
+  const sec = Math.max(0, Math.min(59, parseInt(secEl.value, 10) || 0));
+  const total = min * 60 + sec;
+  return enforceMin ? Math.max(5, total) : total;
+}
+
 scheduleList.addEventListener('input', (e) => {
-  const input = e.target.closest('.schedule-name-input');
-  if (!input) return;
-  const idx = fullRoutine.findIndex(s => s.id === input.dataset.id);
-  if (idx === -1) return;
-  fullRoutine[idx].name = input.value;
+  const nameInput = e.target.closest('.schedule-name-input');
+  if (nameInput) {
+    const idx = fullRoutine.findIndex(s => s.id === nameInput.dataset.id);
+    if (idx !== -1) fullRoutine[idx].name = nameInput.value;
+    return;
+  }
+
+  const noteInput = e.target.closest('.schedule-note-input');
+  if (noteInput) {
+    const idx = fullRoutine.findIndex(s => s.id === noteInput.dataset.id);
+    if (idx !== -1) fullRoutine[idx].notes = noteInput.value;
+    return;
+  }
+
+  const durInput = e.target.closest('.duration-min-input, .duration-sec-input');
+  if (durInput) {
+    const idx = fullRoutine.findIndex(s => s.id === durInput.dataset.id);
+    if (idx === -1) return;
+    const row = durInput.closest('.schedule-row');
+    fullRoutine[idx].duration = getRowDuration(row);
+  }
 });
 
 scheduleList.addEventListener('change', (e) => {
-  const input = e.target.closest('.schedule-name-input');
-  if (!input) return;
-  const idx = fullRoutine.findIndex(s => s.id === input.dataset.id);
+  const nameInput = e.target.closest('.schedule-name-input');
+  if (nameInput) {
+    const idx = fullRoutine.findIndex(s => s.id === nameInput.dataset.id);
+    if (idx === -1) return;
+    const trimmed = nameInput.value.trim();
+    fullRoutine[idx].name = trimmed || fullRoutine[idx].name || 'Exercise';
+    nameInput.value = fullRoutine[idx].name;
+    saveFullRoutine();
+    return;
+  }
+
+  const noteInput = e.target.closest('.schedule-note-input');
+  if (noteInput) {
+    const idx = fullRoutine.findIndex(s => s.id === noteInput.dataset.id);
+    if (idx === -1) return;
+    fullRoutine[idx].notes = noteInput.value.trim();
+    noteInput.value = fullRoutine[idx].notes;
+    saveFullRoutine();
+    return;
+  }
+
+});
+
+// Duration has two separate fields (minutes/seconds). Only finalize and
+// clamp the value once focus leaves BOTH fields, not on every individual
+// field blur — otherwise tabbing from minutes to seconds would commit a
+// half-edited value before the user finishes typing.
+scheduleList.addEventListener('focusout', (e) => {
+  const durInput = e.target.closest('.duration-min-input, .duration-sec-input');
+  if (!durInput) return;
+  const row = durInput.closest('.schedule-row');
+  if (e.relatedTarget && row.contains(e.relatedTarget) &&
+      e.relatedTarget.matches('.duration-min-input, .duration-sec-input')) {
+    return;
+  }
+  const idx = fullRoutine.findIndex(s => s.id === durInput.dataset.id);
   if (idx === -1) return;
-  const trimmed = input.value.trim();
-  fullRoutine[idx].name = trimmed || fullRoutine[idx].name || 'Exercise';
-  input.value = fullRoutine[idx].name;
+  const duration = getRowDuration(row, true);
+  fullRoutine[idx].duration = duration;
+  row.querySelector('.duration-min-input').value = Math.floor(duration / 60);
+  row.querySelector('.duration-sec-input').value = String(duration % 60).padStart(2, '0');
   saveFullRoutine();
 });
 
@@ -1338,13 +1520,15 @@ addTaskBtn.addEventListener('click', () => {
     name: name,
     side: newTaskSide.value,
     duration: duration,
-    active: true
+    active: true,
+    notes: newTaskNote.value.trim()
   });
   saveFullRoutine();
   renderSchedule();
   newTaskName.value = '';
   newTaskMin.value = 1;
   newTaskSec.value = 0;
+  newTaskNote.value = '';
 });
 
 scheduleBtn.addEventListener('click', () => {
@@ -1356,6 +1540,7 @@ scheduleBtn.addEventListener('click', () => {
 scheduleViewBackBtn.addEventListener('click', () => {
   scheduleViewScreen.style.display = 'none';
   homeScreen.classList.add('show');
+  renderHome();
 });
 
 goToEditBtn.addEventListener('click', () => {
