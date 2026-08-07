@@ -432,6 +432,22 @@
     gap: 10px;
     flex-wrap: wrap;
   }
+  .side-select {
+    flex: none;
+    border: none;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .side-select:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
   .schedule-name-input, .schedule-view-name {
     font-size: 16px;
     font-weight: 700;
@@ -785,6 +801,7 @@ const SIDE_BG = {
   bi: 'rgba(181,139,240,0.18)',
   none: 'rgba(242,193,78,0.18)'
 };
+const SIDE_OPTIONS = [SIDE.BI, SIDE.LEFT, SIDE.RIGHT, SIDE.NONE];
 
 const ROUTINE_STORAGE_KEY = 'armWristStretchRoutineV1';
 
@@ -1367,10 +1384,13 @@ function renderSchedule() {
     const mins = Math.floor(step.duration / 60);
     const secs = step.duration % 60;
     const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">each side</span>' : '';
+    const sideOptionsHtml = SIDE_OPTIONS.map(s =>
+      '<option value="' + s + '"' + (s === step.side ? ' selected' : '') + '>' + SIDE_LABELS[s] + '</option>'
+    ).join('');
     return (
       '<div class="schedule-row' + (step.active ? '' : ' inactive') + '">' +
         '<div class="schedule-row-top">' +
-          '<span class="mini-tag" style="' + tagStyle + '">' + SIDE_LABELS[step.side] + '</span>' +
+          '<select class="side-select" data-id="' + step.id + '" style="' + tagStyle + '" aria-label="Exercise type">' + sideOptionsHtml + '</select>' +
           '<input type="text" class="schedule-name-input" data-id="' + step.id + '" value="' + escapeHtml(step.name) + '" aria-label="Exercise name" maxlength="60">' +
         '</div>' +
         '<div class="schedule-row-bottom">' +
@@ -1479,6 +1499,15 @@ scheduleList.addEventListener('change', (e) => {
     return;
   }
 
+  const sideSelect = e.target.closest('.side-select');
+  if (sideSelect) {
+    const idx = fullRoutine.findIndex(s => s.id === sideSelect.dataset.id);
+    if (idx === -1) return;
+    fullRoutine[idx].side = sideSelect.value;
+    saveFullRoutine();
+    renderSchedule();
+    return;
+  }
 });
 
 // Duration has two separate fields (minutes/seconds). Only finalize and
