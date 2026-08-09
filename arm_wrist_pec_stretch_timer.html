@@ -549,6 +549,16 @@
     color: var(--muted);
     white-space: nowrap;
   }
+  .side-hint {
+    display: none;
+    font-size: 12px;
+    font-style: italic;
+    color: var(--accent);
+    margin: -4px 0 12px;
+  }
+  .side-hint.show {
+    display: block;
+  }
   .schedule-duration-edit {
     display: flex;
     align-items: center;
@@ -824,15 +834,16 @@
       <input type="text" id="newTaskName" placeholder="Exercise name" maxlength="60">
       <div class="schedule-add-row">
         <select id="newTaskSide" aria-label="Side">
-          <option value="bi">Both Arms</option>
+          <option value="bi">L + R</option>
           <option value="left">Left</option>
           <option value="right">Right</option>
-          <option value="none">Whole Body</option>
+          <option value="none">General</option>
         </select>
         <input type="number" id="newTaskMin" min="0" max="30" value="1" aria-label="Minutes">
         <span class="schedule-add-colon">:</span>
         <input type="number" id="newTaskSec" min="0" max="59" step="5" value="0" aria-label="Seconds">
       </div>
+      <div class="side-hint" id="newTaskSideHint">Per side — this duration runs once for Left, then once for Right.</div>
       <input type="text" id="newTaskNote" placeholder="Cue or note (optional)" maxlength="120" style="margin-bottom: 12px;">
       <button id="addTaskBtn">Add to Schedule</button>
     </div>
@@ -896,7 +907,7 @@
 
 <script>
 const SIDE = { LEFT: 'left', RIGHT: 'right', BI: 'bi', NONE: 'none' };
-const SIDE_LABELS = { left: 'Left', right: 'Right', bi: 'Both Arms', none: 'Whole Body' };
+const SIDE_LABELS = { left: 'Left', right: 'Right', bi: 'L + R', none: 'General' };
 const SIDE_CLASS = { left: 'side-left', right: 'side-right', bi: 'side-bi', none: 'side-none' };
 const SIDE_COLOR = { left: 'var(--left)', right: 'var(--right)', bi: 'var(--bi)', none: 'var(--none)' };
 const SIDE_BG = {
@@ -997,6 +1008,7 @@ const newTaskMin = document.getElementById('newTaskMin');
 const newTaskSec = document.getElementById('newTaskSec');
 const addTaskBtn = document.getElementById('addTaskBtn');
 const newTaskNote = document.getElementById('newTaskNote');
+const newTaskSideHint = document.getElementById('newTaskSideHint');
 
 const timerDisplay = document.getElementById('timerDisplay');
 const exerciseName = document.getElementById('exerciseName');
@@ -1371,7 +1383,7 @@ function buildSessionRoutine() {
   const expanded = [];
   active.forEach((step) => {
     if (step.side === SIDE.BI) {
-      // "Both Arms" means the same exercise performed left then right,
+      // "L + R" means the same exercise performed left then right,
       // with the stored duration applying to each side individually.
       expanded.push({ ...step, side: SIDE.LEFT });
       expanded.push({ ...step, side: SIDE.RIGHT });
@@ -1516,7 +1528,7 @@ function renderScheduleView() {
     const step = group.step;
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
     const offBadge = step.active ? '' : '<span class="off-badge">Off</span>';
-    const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">each side</span>' : '';
+    const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">per side</span>' : '';
     const notesHtml = step.notes ? '<div class="schedule-view-note">' + escapeHtml(step.notes) + '</div>' : '';
     return (
       '<div class="schedule-view-row' + (step.active ? '' : ' inactive') + '">' +
@@ -1542,7 +1554,7 @@ function renderSchedule() {
     const tagStyle = 'background:' + SIDE_BG[step.side] + '; color:' + SIDE_COLOR[step.side] + ';';
     const mins = Math.floor(step.duration / 60);
     const secs = step.duration % 60;
-    const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">each side</span>' : '';
+    const eachSideHint = step.side === SIDE.BI ? '<span class="each-side-hint">per side</span>' : '';
     const sideOptionsHtml = SIDE_OPTIONS.map(s =>
       '<option value="' + s + '"' + (s === step.side ? ' selected' : '') + '>' + SIDE_LABELS[s] + '</option>'
     ).join('');
@@ -1717,7 +1729,14 @@ addTaskBtn.addEventListener('click', () => {
   newTaskMin.value = 1;
   newTaskSec.value = 0;
   newTaskNote.value = '';
+  updateNewTaskSideHint();
 });
+
+function updateNewTaskSideHint() {
+  newTaskSideHint.classList.toggle('show', newTaskSide.value === SIDE.BI);
+}
+newTaskSide.addEventListener('change', updateNewTaskSideHint);
+updateNewTaskSideHint();
 
 scheduleBtn.addEventListener('click', () => {
   homeScreen.classList.remove('show');
